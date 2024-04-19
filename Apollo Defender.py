@@ -15,6 +15,9 @@ from PySide6.QtWidgets import QPushButton, QFileDialog, QSizePolicy, QTabWidget,
 
 class ApolloDefender(QtWidgets.QWidget):
     def __init__(self):
+        """
+        Constructor for the ApolloDefender application
+        """
         super().__init__()
 
         self.vuln_text = ""
@@ -215,9 +218,9 @@ class ApolloDefender(QtWidgets.QWidget):
         self.setLayout(self.main_layout)
         self.show()
 
-    # function to submit ip address to run_nmap function. Includes error checking
     def submit_ip(self) -> None:
-        if (self.check_ip_addr() | self.check_url()) & self.check_file_path() & self.check_cvss_score():
+        """Submits IP address to run_nmap function. Includes error checking."""
+        if (self.check_ip_addr() | self.check_url()) & self.check_file_path() & self.check_cvss_score():  # check to ensure that user input is valid before running scan
             self.text2.setText("Running Nmap scan")
             self.text2.repaint()
             self.run_nmap()
@@ -229,25 +232,32 @@ class ApolloDefender(QtWidgets.QWidget):
         else:
             self.text2.setText("Scan failed. Check for correct IP address format and correct file path and try again")
 
-    # function to open the File Dialog box, allowing the user to select output file path
     def select_folder(self) -> None:
+        """Opens the File Dialog box, allowing the user to select output file path."""
         folder_path = QFileDialog.getExistingDirectory(self, 'Select Folder')
         if folder_path:
             self.file_path_input.setText(folder_path)
 
     def on_file_path_changed(self) -> None:
+        """Updates the file path in the tree view when the user changes the file path in the input box."""
         path = self.file_path_input.text()
         if os.path.exists(path):
             self.model.setRootPath(path)
             self.tree.setRootIndex(self.model.index(path))
 
     def refresh_tree(self) -> None:
+        """Refreshes the tree view when the refresh button is clicked."""
         path = self.file_path_input.text()
         self.model.setRootPath(path)
         self.tree.setRootIndex(self.model.index(path))
 
-    # function to check if the file path selected by the user is valid
     def check_file_path(self) -> bool:
+        """
+        Checks if the file path selected by the user is valid
+
+        :return: boolean value indicating whether the file path is valid or not
+        :rtype: bool
+        """
         file_path = self.file_path_input.text()
         if os.path.exists(file_path):
             self.text3.setText("File path is valid!")
@@ -258,8 +268,12 @@ class ApolloDefender(QtWidgets.QWidget):
             self.text3.repaint()
             return False
 
-    # function to check if the IP address input by the user meets the required format
     def check_ip_addr(self) -> bool:
+        """
+        Checks if the IP address input by the user meets the required format
+        :return: bool indicating whether the IP address is valid or not
+        :rtype: bool
+        """
         ipAddr = self.scan_input.text()
         # regex to check if correct format for IP address has been entered
         ipv4_host_regex = re.compile(r'^\d{2,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
@@ -271,8 +285,12 @@ class ApolloDefender(QtWidgets.QWidget):
         else:
             return False
 
-    # function to check if the URL input by the user is a valid URL
     def check_url(self) -> bool:
+        """
+        Checks if the URL input by the user is a valid URL
+        :return: bool indicating whether the URL is valid or not
+        :rtype: bool
+        """
         url_regex = re.compile(r'^([^\s/?.#]+\.)+[^\s/?.#]+$')
 
         if url_regex.match(self.scan_input.text()):
@@ -284,12 +302,25 @@ class ApolloDefender(QtWidgets.QWidget):
 
     @staticmethod
     def sanitise_ip(ip_text) -> str:
+        """
+        Sanitises the IP address text by replacing any '/' or '\' characters with '_'
+        This is used when a file needs to be saved with the IP address in the name
+        :param ip_text:
+        :type ip_text: str
+        :return:  with '/' and '\' characters replaced with '_' eg. 192.168.1.0/24 -> 192.168.1.0_24
+        :rtype: str
+        """
         for char in ['/', '\\']:
             if char in ip_text:
                 ip_text = ip_text.replace(char, '_')
         return ip_text
 
     def check_cvss_score(self) -> bool:
+        """
+        Checks if the CVSS score entered by the user is in the correct format
+        :return: bool indicating whether the CVSS score is valid or not
+        :rtype: bool
+        """
         # regex to check if correct format for CVSS score has been entered
         cvss_score: str = self.cvss_input.text()
         cvss_score_regex = re.compile(r'^[0-9]\.[0-9]$')
@@ -300,8 +331,11 @@ class ApolloDefender(QtWidgets.QWidget):
             self.text3.repaint()
             return False
 
-    # main function to run nmap and subsequent scans
     def run_nmap(self) -> None:
+        """
+        Runs selected nmap scan type and subsequent CVE and log scans
+        :return: None
+        """
         date_format: str = '%Y-%m-%d'
         date = datetime.now().strftime(date_format)
         ip_address: str = self.scan_input.text()
@@ -326,21 +360,44 @@ class ApolloDefender(QtWidgets.QWidget):
 
     @staticmethod
     def normal_scan(ip_address, output_file) -> None:
+        """
+        Runs a normal nmap scan on the given IP address and save the output to a file
+        :param ip_address:
+        :param output_file:
+        :return: None
+        """
         nmap_cmd: str = f"nmap -O -T4 -F -oX {output_file} {ip_address}"
         subprocess.call(nmap_cmd, shell=True)
 
     @staticmethod
     def aggressive_scan(ip_address, output_file) -> None:
+        """
+        Runs an aggressive nmap scan on the given IP address and save the output to a file
+        :param ip_address:
+        :param output_file:
+        :return: None
+        """
         nmap_cmd: str = f"nmap -O -T4 -A -oX {output_file} {ip_address}"
         subprocess.call(nmap_cmd, shell=True)
 
     @staticmethod
     def stealth_scan(ip_address, output_file) -> None:
+        """
+        Runs a stealth nmap scan on the given IP address and save the output to a file
+        :param ip_address:
+        :param output_file:
+        :return: None
+        """
         nmap_cmd: str = f"nmap -O -T4 -sS -oX {output_file} {ip_address}"
         subprocess.call(nmap_cmd, shell=True)
 
     # function to loop through active_devices array and run cve scans on each
     def run_cve_search(self, ip_addresses) -> None:
+        """
+        Loops through active_devices array and run cve scans on each
+        :param ip_addresses: List[str] of IP addresses as defined by :func:`define_active_devices()`
+        :return: None
+        """
         date_format: str = '%Y-%m-%d'
 
         # print(f"IP addresses: {ip_addresses}")
@@ -362,6 +419,11 @@ class ApolloDefender(QtWidgets.QWidget):
             self.BottomBoxesLayout.addWidget(self.generate_report_button)
 
     def run_cve_log(self, ip_addresses) -> None:
+        """
+        Runs a CVE scan to create the log files
+        :param ip_addresses:
+        :return: None
+        """
         date_format: str = '%Y-%m-%d'
 
         for ip_address in ip_addresses:
@@ -380,6 +442,12 @@ class ApolloDefender(QtWidgets.QWidget):
 
     # function to iterate through the nmap json file and return a list of active devices
     def define_active_devices(self, json_data) -> List[str]:
+        """
+        Iterates through the nmap json file and return a list of active devices
+        :param json_data:
+        :return: List of IP addresses of active devices
+        :rtype: List[str]
+        """
         with open(json_data, 'r') as file:
             data = json.load(file)
 
@@ -404,6 +472,12 @@ class ApolloDefender(QtWidgets.QWidget):
 
     # function to address duplicate code fragment in define_active_devices
     def get_host_addresses(self, host) -> List[str]:
+        """
+        Extracts the IP addresses from the host dictionary
+        :param host: JSON object containing the host information
+        :return: List of IP addresses
+        :rtype: List[str]
+        """
         host_addresses = host['address']
 
         if isinstance(host_addresses, list):
@@ -424,6 +498,11 @@ class ApolloDefender(QtWidgets.QWidget):
         return self.ip_addresses
 
     def populate_vulnerabilities_list(self, flag: bool) -> None:
+        """
+        Populates the vulnerabilities list and GUI depending on the function that calls it
+        :param flag: a flag to indicate whether the function is being called from the run_cve_search function or the run_cve_log function
+        :return: None
+        """
         # if flag = 1, then the function is being called from the run_cve_search function
         # else, the function is being called from the run_cve_log function
         date_format: str = '%Y-%m-%d'
@@ -486,6 +565,12 @@ class ApolloDefender(QtWidgets.QWidget):
 
     @staticmethod
     def extract_cve_info(elem) -> dict:
+        """
+        Extracts the CVE information from the JSON element provided
+        :param elem: JSON element containing the CVE information to be extracted
+        :return: dict of CVE information
+        :rtype: dict
+        """
         # create a dictionary that will map the key found in the JSON file to the corresponding value
         cve_info: dict = {}
 
@@ -499,6 +584,16 @@ class ApolloDefender(QtWidgets.QWidget):
         return cve_info
 
     def create_vuln_list_item(self, cve_info, ipaddress, protocol, port_number, serv_name, flag: bool) -> None:
+        """
+        Creates a list item for the vulnerabilities list
+        :param cve_info:
+        :param ipaddress:
+        :param protocol:
+        :param port_number:
+        :param serv_name:
+        :param flag: flag to determine the source of the function call
+        :return: None
+        """
         vuln_dict = {
             'ipaddress': ipaddress,
             'protocol': protocol,
@@ -526,6 +621,10 @@ class ApolloDefender(QtWidgets.QWidget):
             self.vuln_log_dict.append(vuln_dict)
 
     def generate_report(self) -> None:
+        """
+        Generates a report of the vulnerabilities found in the scan
+        :return: None
+        """
         date_format: str = '%Y-%m-%d'
         date: str = datetime.now().strftime(date_format)
 
@@ -550,7 +649,11 @@ class ApolloDefender(QtWidgets.QWidget):
         self.text3.setText("Report generated successfully")
         self.text3.repaint()
 
-    def create_log_file(self):
+    def create_log_file(self) -> None:
+        """
+        Creates a log file of the vulnerabilities found in the scan
+        :return: None
+        """
         date_format: str = '%Y-%m-%d'
         date: str = datetime.now().strftime(date_format)
         path: str = self.file_path_input.text()
@@ -568,6 +671,12 @@ class ApolloDefender(QtWidgets.QWidget):
 
 # function to convert the nmap XML output to a JSON output for easier parsing
 def xml_to_json(xml_path, json_path) -> None:
+    """
+    Converts the nmap XML output to a JSON output for easier parsing
+    :param xml_path:
+    :param json_path:
+    :return: None
+    """
     # Read the XML file and parse it into a dictionary
     with open(xml_path, 'r') as xml_file:
         xml_data = xml_file.read()
