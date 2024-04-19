@@ -1,8 +1,8 @@
 # APOLLO DEFENDER
 
-## Author: Andrew Skelly
-## Version: 1.0.0
-## Student Number: C00261511
+### Author: Andrew Skelly
+### Version: 1.0.0
+### Student Number: C00261511
 ___
 
 ## Description
@@ -13,7 +13,6 @@ a network or specific host for targets and then conducts a CVE scan against the
 host(s). The scanner will then output the results of this scan to the second tab as well
 as giving the user the option to create a report of the scan for future reference.
 
-___
 
 ## Installation and Dependencies
 
